@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nani City Hotel – PMS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Playfair+Display:wght@700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#F4F6F9;color:#1A2A3A;min-height:100vh;}
+#header{background:#fff;border-bottom:2px solid #E0E7F0;padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;flex-wrap:wrap;box-shadow:0 2px 12px #1A3A6B12;}
+#header h1{font-family:'Playfair Display',serif;font-size:20px;color:#1B3A6B;}
+#header .sub{font-size:10px;color:#7A9ABB;letter-spacing:2px;text-transform:uppercase;}
+#header .leg{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.leg-item{display:none;}
+.leg-dot{width:10px;height:10px;border-radius:3px;}
+#sync{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;background:#E8F5E9;color:#2E7D32;}
+#aktiv{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;background:#E8F5E9;color:#2E7D32;}
+#month-nav{position:sticky;top:0;z-index:50;background:#EEF3FA;border-bottom:1px solid #D0DCF0;padding:6px 16px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+#month-nav::-webkit-scrollbar{display:none;}
+.mnav-yr{display:flex;align-items:center;gap:4px;margin-right:4px;}
+.mnav-yr-lbl{font-size:10px;font-weight:900;color:#7A9ABB;white-space:nowrap;padding:0 4px;}
+.mnav-btn{padding:4px 10px;border-radius:14px;border:1.5px solid #D0DCF0;background:#fff;color:#1B3A6B;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.mnav-btn:hover{background:#1B3A6B;color:#fff;border-color:#1B3A6B;}
+.mnav-btn.active{background:#2D6FBF;color:#fff;border-color:#2D6FBF;}
+#cal-wrap{overflow-x:auto;padding:20px 16px 40px;}
+table{border-collapse:collapse;table-layout:fixed;}
+.cz{width:54px;min-width:54px;background:#C62828;color:#fff;border-right:2px solid #B71C1C;position:sticky;left:0;z-index:11;padding:0 4px;font-size:12px;font-weight:900;white-space:nowrap;height:36px;}
+.ct{display:none;}
+.suite .cz{background:#B71C1C;color:#FFE5A0;}
+.suite .ct{background:#FFF8E1;color:#A07000;}
+.mh{background:#1B3A6B;color:#fff;font-size:13px;font-weight:700;text-align:center;padding:10px 0;white-space:nowrap;border-left:2px solid #4D7FBF;}
+.mh.y2027{background:#2D6F3A;}
+.dh{width:120px;min-width:120px;padding:4px 0;text-align:center;font-size:11px;font-weight:700;color:#1B3A6B;border-left:1px solid #D8E4F0;background:#fff;}
+.dh.we{background:#FFF3E0;color:#E65100;}
+.dh.ms{border-left:2px solid #2D6FBF!important;}
+.dc{width:120px;min-width:120px;height:44px;max-height:44px;cursor:pointer;border:1px solid #E0EAF4;padding:0;vertical-align:middle;background:#fff;overflow:hidden;box-sizing:border-box;position:relative;}
+.dc.we{background:#FFF8F0;}
+.dc.sc{background:#FFFDF0;}
+.dc.sc.we{background:#FFF8E1;}
+.dc:hover{background:#E8F0FB!important;}
+.dc.ms{border-left:2px solid #2D6FBF!important;}
+.re{position:absolute;top:2px;left:3px;right:3px;bottom:2px;border-radius:6px;padding:2px 7px;display:flex;align-items:center;overflow:hidden;white-space:nowrap;cursor:pointer;transition:box-shadow .12s;box-shadow:0 1px 4px #0002;box-sizing:border-box;}
+.re:hover{box-shadow:0 3px 10px #0003;z-index:5;}
+.re span{font-size:12px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;text-shadow:0 1px 2px rgba(0,0,0,0.35);}
+.bc{text-align:center;font-size:9px;font-weight:700;color:#fff;border-left:1px solid #fff3;border-top:2px solid #D0DCF0;height:24px;}
+.re-even .ct{background:#F4F8FF;}
+.re-odd .ct{background:#EEF3FA;}
+.re-even .dc{background:#FAFCFF;}
+.re-even .dc.we{background:#FFF8F0;}
+
+/* Ödeme bekleyen rezervasyon — yanıp sönen turuncu çerçeve */
+@keyframes pendPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,152,0,.7);}50%{box-shadow:0 0 0 4px rgba(255,152,0,0);}}
+.re.re-pending{animation:pendPulse 1.6s infinite;}
+.re-pending .re-tag{position:absolute;top:-1px;right:3px;background:#C62828;color:#fff;font-size:7px;font-weight:700;padding:0 4px;border-radius:0 0 5px 5px;letter-spacing:.5px;}
+
+/* Overbooking */
+.dc.ob{box-shadow:inset 0 0 0 2px #C62828;}
+.ob-badge{position:absolute;top:1px;right:1px;background:#C62828;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;z-index:10;pointer-events:none;line-height:1.4;}
+/* Overbooked oda satırı 2x yüksek, kutular yarı yarı */
+tr.ob-row .dc{height:88px;max-height:88px;}
+tr.ob-row .re.re-top{top:2px;bottom:calc(50% + 1px);}
+tr.ob-row .re.re-bot{top:calc(50% + 1px);bottom:2px;}
+tr.ob-row .re.re-single{top:2px;bottom:2px;}
+/* Checkout-Schwanz: şimdilik gizli — JS mantığı aktif, görsel kapalı */
+.co-tail{display:none;}
+.re.re-arrive{left:3px!important;}
+
+/* MODAL */
+#ov{display:none;position:fixed;inset:0;background:#1A2A3A55;z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px);overflow-y:auto;padding:20px 0;}
+#ov.open{display:flex;}
+#mb{background:#fff;border-radius:20px;padding:28px;width:440px;max-width:95vw;box-shadow:0 24px 60px #1A2A3A22;border:1px solid #D0DCF0;max-height:calc(100vh - 40px);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#mb h2{font-family:'Playfair Display',serif;font-size:18px;color:#1B3A6B;margin-bottom:4px;}
+.msub{font-size:12px;color:#7A9ABB;margin-bottom:18px;}
+.fg{display:grid;gap:13px;}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fl label{font-size:10px;color:#7A9ABB;font-weight:700;display:block;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;}
+.fl input{width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F8FAFD;color:#1A2A3A;font-size:13px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .15s;}
+.fl input:focus{border-color:#2D6FBF;background:#fff;}
+#ni{background:#EEF3FA;border-radius:8px;padding:8px 12px;font-size:12px;color:#2D6FBF;display:flex;align-items:center;gap:8px;}
+#tp{margin-left:auto;color:#A07000;font-weight:700;}
+.sr{display:flex;gap:7px;flex-wrap:wrap;}
+.sb{padding:5px 14px;border-radius:20px;border:1.5px solid #D0DCF0;cursor:pointer;font-size:11px;font-weight:600;background:#F4F6F9;color:#4A6A8A;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.sb.act{color:#fff;border-color:transparent;}
+.ma{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:22px;}
+.ma-top{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;}
+.btn{padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s;}
+.bc2{background:#F4F6F9;border:1.5px solid #D0DCF0;color:#4A6A8A;flex:1;}
+.bs{background:linear-gradient(135deg,#1B3A6B,#2D6FBF);color:#fff;flex:2;box-shadow:0 4px 14px #2D6FBF30;}
+.bs:hover{box-shadow:0 6px 20px #2D6FBF50;transform:translateY(-1px);}
+.bd{background:#FFF0EE;border:1.5px solid #FFCDD2;color:#C62828;padding:10px 14px;}
+.br{background:#E8F5E9;border:1.5px solid #A5D6A7;color:#1B5E20;padding:10px 14px;}
+
+#dov{display:none;position:fixed;inset:0;background:#1A2A3A66;z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+#dov.open{display:flex;}
+#db{background:#fff;border-radius:16px;padding:28px;width:300px;border:1.5px solid #FFCDD2;text-align:center;box-shadow:0 12px 40px #0002;}
+#db h3{font-size:15px;color:#1A2A3A;margin:10px 0 6px;}
+#db p{font-size:12px;color:#7A9ABB;margin-bottom:18px;}
+.da{display:flex;gap:10px;}
+
+#toast{display:none;position:fixed;bottom:28px;right:28px;z-index:400;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px #0002;color:#fff;animation:su .3s ease;}
+@keyframes su{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* Preise (Fiyat ekranı) */
+#prices-ov{display:none;position:fixed;inset:0;background:#1A2A3A55;z-index:250;align-items:flex-start;justify-content:center;backdrop-filter:blur(3px);overflow-y:auto;padding:20px;}
+#prices-ov.open{display:flex;}
+#prices-box{background:#fff;border-radius:20px;padding:24px;width:680px;max-width:95vw;box-shadow:0 24px 60px #1A2A3A22;border:1px solid #D0DCF0;}
+#prices-box h2{font-family:'Playfair Display',serif;font-size:20px;color:#1B3A6B;margin-bottom:4px;}
+#prices-box .psub{font-size:11px;color:#7A9ABB;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;}
+.p-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;}
+.p-nav-btn{padding:7px 14px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F4F6F9;color:#1B3A6B;font-weight:700;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;}
+.p-nav-btn:hover{background:#E8F0FB;}
+.p-month{font-family:'Playfair Display',serif;font-size:18px;color:#1B3A6B;flex:1;text-align:center;}
+.p-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.p-dh{text-align:center;font-size:10px;color:#7A9ABB;font-weight:700;letter-spacing:1px;padding:4px 0;}
+.p-dh.we{color:#E65100;}
+.p-cell{aspect-ratio:1;min-height:60px;border:1.5px solid #E0EAF4;border-radius:8px;background:#F8FAFD;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;}
+.p-cell:hover{background:#E8F0FB;border-color:#2D6FBF;transform:translateY(-1px);}
+.p-cell.we{background:#FFF8F0;}
+.p-cell.we:hover{background:#FFEACC;}
+.p-cell.empty{visibility:hidden;}
+.p-cell.has-price{background:#E8F5E9;border-color:#A5D6A7;}
+.p-cell.has-price.we{background:#FFF3E0;border-color:#FFCC80;}
+.p-cell.today{box-shadow:0 0 0 2px #2D6FBF;}
+.p-day{font-size:14px;font-weight:700;color:#1B3A6B;line-height:1;}
+.p-price{font-size:12px;font-weight:700;margin-top:4px;}
+.p-price .p-dz{color:#2E7D32;}
+.p-price .p-su{color:#A07000;}
+.p-price .p-sep{color:#B0BEC5;font-weight:400;}
+.p-price-empty{font-size:10px;color:#B0BEC5;margin-top:4px;}
+.p-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.p-act-btn{flex:1;padding:11px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.p-act-bereich{background:linear-gradient(135deg,#1B3A6B,#2D6FBF);color:#fff;box-shadow:0 4px 14px #2D6FBF30;}
+.p-act-close{background:#F4F6F9;border:1.5px solid #D0DCF0;color:#4A6A8A;}
+
+/* Tek gün fiyat modal */
+#price-edit-ov{display:none;position:fixed;inset:0;background:#1A2A3A66;z-index:260;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+#price-edit-ov.open{display:flex;}
+#price-edit-box{background:#fff;border-radius:16px;padding:24px;width:340px;max-width:92vw;box-shadow:0 12px 40px #0004;}
+#price-edit-box h3{font-family:'Playfair Display',serif;font-size:17px;color:#1B3A6B;margin-bottom:4px;}
+#price-edit-box .pesub{font-size:11px;color:#7A9ABB;margin-bottom:16px;}
+#price-edit-box label{font-size:10px;color:#7A9ABB;font-weight:700;display:block;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;}
+#price-edit-box input{width:100%;padding:11px 14px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F8FAFD;font-size:15px;font-weight:700;color:#1A2A3A;outline:none;font-family:'DM Sans',sans-serif;}
+#price-edit-box input:focus{border-color:#2D6FBF;background:#fff;}
+
+@media (max-width:768px){
+  #prices-box{padding:16px;}
+  .p-cell{min-height:50px;}
+  .p-day{font-size:12px;}
+  .p-price{font-size:11px;}
+  .p-nav{flex-wrap:wrap;}
+  .p-month{font-size:15px;}
+}
+
+/* Mobil özet kartı */
+#summary{display:none;}
+@media (max-width:768px){
+  #summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 12px 0;}
+  .sc-card{background:#fff;border:1.5px solid #E0E7F0;border-radius:12px;padding:10px;text-align:center;box-shadow:0 1px 4px #1A3A6B10;}
+  .sc-num{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1;}
+  .sc-lbl{font-size:9px;color:#7A9ABB;letter-spacing:1px;text-transform:uppercase;margin-top:4px;font-weight:600;}
+  .sc-in .sc-num{color:#2E9E6B;}
+  .sc-out .sc-num{color:#E06030;}
+  .sc-occ .sc-num{color:#1B3A6B;}
+}
+
+/* Mobil takvim & header */
+@media (max-width:768px){
+  #header{padding:10px 12px;gap:8px;}
+  #header > div:nth-child(1){font-size:22px;}
+  #header h1{font-size:15px;}
+  #header .sub{font-size:9px;letter-spacing:1px;}
+  #header .leg{gap:6px;width:100%;margin-left:0;justify-content:space-between;margin-top:4px;}
+  .leg-item{display:none;}
+  #sync,#aktiv{font-size:10px;padding:2px 8px;}
+  #header button{font-size:10px!important;padding:5px 10px!important;}
+  #cal-wrap{padding:12px 8px 30px;}
+  .cz{width:44px;min-width:44px;font-size:10px;padding:0 3px;height:32px;}
+  .mh{font-size:11px;padding:7px 0;}
+  .dh{width:calc((100vw - 52px)/3);min-width:calc((100vw - 52px)/3);padding:3px 0;}
+  .dh div:first-child{font-size:11px!important;}
+  .dh div:last-child{font-size:8px!important;}
+  .dc{width:calc((100vw - 52px)/3);min-width:calc((100vw - 52px)/3);height:36px;max-height:36px;}
+  tr.ob-row .dc{height:72px;max-height:72px;}
+  .re{margin:2px;padding:2px 4px;border-radius:5px;}
+  .re span{font-size:10px;}
+  .bc{font-size:8px;height:20px;}
+  #mb{padding:18px;width:95vw;border-radius:14px;}
+  #mb h2{font-size:16px;}
+  .fr2{grid-template-columns:1fr;}
+  .ma-top{gap:6px;}
+}
+@media (max-width:480px){
+  #header{padding:8px 10px;}
+  #header h1{font-size:14px;}
+  .cz{width:38px;min-width:38px;font-size:9px;}
+  .dh{width:calc((100vw - 46px)/3);min-width:calc((100vw - 46px)/3);}
+  .dh div:first-child{font-size:11px!important;}
+  .dh div:last-child{font-size:8px!important;}
+  .dc{width:calc((100vw - 46px)/3);min-width:calc((100vw - 46px)/3);height:36px;max-height:36px;}
+  tr.ob-row .dc{height:72px;max-height:72px;}
+  .re span{font-size:9px;}
+  #summary{grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 10px 0;}
+  .sc-num{font-size:20px;}
+}
+/* Login overlay */
+#loginOv{position:fixed;inset:0;background:linear-gradient(135deg,#1B3A6B,#0F2A50);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;}
+#loginBox{background:#fff;border-radius:20px;padding:36px;width:90%;max-width:360px;text-align:center;box-shadow:0 24px 60px #0006;}
+#loginBox h2{font-family:'Playfair Display',serif;color:#1B3A6B;margin-bottom:6px;font-size:22px;}
+#loginBox .sub{font-size:11px;color:#7A9ABB;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;}
+#pwInput{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #D0DCF0;background:#F8FAFD;font-size:14px;outline:none;font-family:'DM Sans',sans-serif;margin-bottom:12px;transition:border-color .15s;}
+#pwInput:focus{border-color:#2D6FBF;background:#fff;}
+#pwErr{display:none;color:#C62828;font-size:12px;margin-bottom:12px;}
+#pwBtn{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#1B3A6B,#2D6FBF);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 14px #2D6FBF30;}
+#pwBtn:hover{box-shadow:0 6px 20px #2D6FBF50;}
+#logoutBtn{background:transparent;border:none;color:#7A9ABB;font-size:18px;cursor:pointer;padding:4px 8px;margin-left:4px;}
+#logoutBtn:hover{color:#C62828;}
+</style>
+</head>
+<body>
+
+<div id="loginOv">
+  <div id="loginBox">
+    <div style="font-size:44px;margin-bottom:10px;">🏨</div>
+    <h2>Nani City Hotel</h2>
+    <div class="sub">PMS · Login</div>
+    <input type="password" id="pwInput" placeholder="Passwort" autocomplete="current-password">
+    <div id="pwErr">⚠️ Falsches Passwort</div>
+    <button id="pwBtn" type="button">🔓 Einloggen</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var PMS_PW = 'nani2026';
+  var KEY = 'pms_auth_until';
+  var DAYS = 30;
+  var until = parseInt(localStorage.getItem(KEY)||'0',10);
+  function unlock(){
+    document.getElementById('loginOv').style.display='none';
+  }
+  function tryLogin(){
+    var v = document.getElementById('pwInput').value;
+    if(v === PMS_PW){
+      localStorage.setItem(KEY, String(Date.now() + DAYS*86400000));
+      unlock();
+    } else {
+      document.getElementById('pwErr').style.display='block';
+      document.getElementById('pwInput').value='';
+      document.getElementById('pwInput').focus();
+    }
+  }
+  window.pmsLogout = function(){
+    if(confirm('Wirklich abmelden?')){
+      localStorage.removeItem(KEY);
+      location.reload();
+    }
+  };
+  if(until && Date.now() < until){
+    unlock();
+  } else {
+    setTimeout(function(){
+      var i = document.getElementById('pwInput');
+      if(i) i.focus();
+    }, 100);
+  }
+  document.getElementById('pwBtn').addEventListener('click', tryLogin);
+  document.getElementById('pwInput').addEventListener('keydown', function(e){
+    if(e.key==='Enter') tryLogin();
+  });
+})();
+</script>
+
+<div id="header">
+  <div style="font-size:26px">🏨</div>
+  <div>
+    <h1>HOTEL KERNHOF</h1>
+    <div class="sub">PMS · März 2026 – Dezember 2030</div>
+  </div>
+  <div class="leg">
+    <div class="leg-item"><div class="leg-dot" style="background:#3B5FCC"></div>Reserviert</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2E9E6B"></div>Check-In</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#E06030"></div>Check-Out</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9E9E9E"></div>Storniert</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#424242"></div>Gesperrt</div>
+    <div id="sync">☁️ Verbinden…</div>
+    <div id="aktiv">0 aktiv</div>
+    <button onclick="scrollToToday(true)" style="padding:5px 14px;border-radius:20px;border:none;background:#2E9E6B;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">📅 Heute</button>
+    <button onclick="sendCheckoutList()" style="padding:5px 14px;border-radius:20px;border:none;background:#1B3A6B;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">📋 Heutiger Check-Out</button>
+    <button onclick="openPrices()" style="padding:5px 14px;border-radius:20px;border:none;background:#2D6FBF;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">💰 Preise</button>
+    <button id="obBtn" onclick="openObCheck()" style="padding:5px 14px;border-radius:20px;border:none;background:#C62828;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">⚠️ Überbuchung <span id="ob-count" style="display:none;background:#fff;color:#C62828;border-radius:10px;padding:0 6px;margin-left:2px;">0</span></button>
+    <button id="logoutBtn" onclick="pmsLogout()" title="Abmelden">🔒</button>
+  </div>
+</div>
+
+<div id="summary">
+  <div class="sc-card sc-in"><div class="sc-num" id="sc-in">0</div><div class="sc-lbl">Check-In heute</div></div>
+  <div class="sc-card sc-out"><div class="sc-num" id="sc-out">0</div><div class="sc-lbl">Check-Out heute</div></div>
+  <div class="sc-card sc-occ"><div class="sc-num" id="sc-occ">0/13</div><div class="sc-lbl">Belegt</div></div>
+</div>
+
+<div id="month-nav"></div>
+<div id="cal-wrap"><table id="cal"></table></div>
+
+<div id="ov">
+  <div id="mb">
+    <h2 id="mt">➕ Neue Reservierung</h2>
+    <div class="msub" id="ms"></div>
+    <div id="departure-info" style="display:none;margin-top:8px;font-size:12.5px;font-weight:700;padding:7px 11px;border-radius:9px;"></div>
+    <div class="fg">
+      <div class="fl"><label>Gast Name *</label><input type="text" id="fg" placeholder="z.B. Müller Hans"></div>
+      <div class="fr2">
+        <div class="fl"><label>Anreise *</label><input type="date" id="fi"></div>
+        <div class="fl"><label>Abreise *</label><input type="date" id="fo"></div>
+      </div>
+      <div id="ni" style="display:none">🌙 <strong id="nc">0</strong> Nächte <span id="tp"></span></div>
+      <div class="fr2">
+        <div class="fl"><label>Personen</label><input type="number" id="fp" value="2" min="1" max="4"></div>
+        <div class="fl"><label>Preis Total (CHF)</label><input type="number" id="fpr" placeholder="0"></div>
+      </div>
+      <div class="fl"><label>Status</label><div class="sr" id="sr"></div></div>
+      <div class="fl" id="zimmer-change-div" style="display:none">
+        <label>Zimmer ändern</label>
+        <select id="froom" style="width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F8FAFD;color:#1A2A3A;font-size:13px;outline:none;font-family:DM Sans,sans-serif;">
+          <option value="">-- Zimmer wählen --</option>
+          <option value="1">Zimmer 1 – DZ</option>
+          <option value="2">Zimmer 2 – DZ</option>
+          <option value="3">Zimmer 3 – DZ</option>
+          <option value="4">Zimmer 4 – DZ</option>
+          <option value="5">Zimmer 5 – DZ</option>
+          <option value="6">Zimmer 6 – DZ</option>
+          <option value="7">Zimmer 7 – DZ</option>
+          <option value="8">Zimmer 8 – DZ</option>
+          <option value="9">Zimmer 9 – DZ</option>
+          <option value="10">Zimmer 10 – DZ</option>
+          <option value="11">Zimmer 11 – DZ</option>
+          <option value="12">Zimmer 12 – DZ</option>
+          <option value="13">Zimmer 13 – Suite</option>
+        </select>
+      </div>
+      <div class="fl"><label>Gast E-Mail</label><input type="email" id="fe" placeholder="gast@email.com"></div>
+      <div class="fl"><label>WhatsApp / Telefon</label><input type="tel" id="fph" placeholder="+41 79 123 45 67"></div>
+      <div class="fl"><label>Bemerkung</label><input type="text" id="fn" placeholder="Optional..."></div>
+    </div>
+    <div style="margin-top:22px;display:grid;gap:8px;">
+      <!-- Üst butonlar: yardımcı işlemler -->
+      <div class="ma-top" style="margin-top:0">
+        <button class="btn bd" id="bdd" style="display:none;flex:0 0 auto" onclick="confDel()">🗑</button>
+        <button class="btn br" id="brr" style="display:none;flex:1" onclick="doRechnung()">🧾 PDF</button>
+        <button class="btn" id="bmail" style="display:none;flex:1;background:#E3F2FD;border:1.5px solid #90CAF9;color:#1565C0;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;" onclick="sendConfirmMail()">✉️ Mail</button>
+        <button class="btn" id="bcheckin" style="display:none;flex:1;background:#E8F5E9;border:1.5px solid #A5D6A7;color:#1B5E20;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;" onclick="sendCheckinLink()">🔗 Check-in</button>
+        <!-- Nani: Self-Check-In Gerät — kein Türcode -->
+        <button class="btn" id="bpaid" style="display:none;flex:1;background:#FFF3E0;border:1.5px solid #FFCC80;color:#E65100;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;" onclick="markPaid()">💰 Als bezahlt</button>
+      </div>
+      <!-- Alt butonlar: ana işlemler -->
+      <button class="btn bc2" onclick="closeM()">Abbrechen</button>
+      <button class="btn bs" id="bsv" onclick="saveR()">✅ Anlegen</button>
+    </div>
+  </div>
+</div>
+
+<div id="dov">
+  <div id="db">
+    <div style="font-size:32px">🗑️</div>
+    <h3>Reservierung löschen?</h3>
+    <p>Nicht rückgängig machbar.</p>
+    <div class="da">
+      <button class="btn bc2" style="flex:1" onclick="closeDel()">Abbrechen</button>
+      <button class="btn" style="flex:1;background:#C62828;color:#fff;border-radius:10px" onclick="doDel()">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<script>
+// ── Firebase Init ──────────────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey: "AIzaSyDy4rXHWU3Q_ssBcenGt_9hU1H6LlLjJn4",
+  authDomain: "nani-city-hotel.firebaseapp.com",
+  projectId: "nani-city-hotel",
+  storageBucket: "nani-city-hotel.firebasestorage.app",
+  messagingSenderId: "583985775719",
+  appId: "1:583985775719:web:3fb9f8775fb3d4d1ec40c2"
+});
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+// ── Sabitler ───────────────────────────────────────────────────────────────
+const SC = {
+  'Reserviert':'#3B5FCC','Check-In':'#2E9E6B',
+  'Check-Out':'#E06030','Storniert':'#9E9E9E','Gesperrt':'#424242',
+  'awaiting_payment_link':'#FF9800',  // turuncu - bot rezervasyonu, ödeme bekleniyor
+  'pending_payment':'#FF9800',        // turuncu - bot (alternatif isim), ödeme bekleniyor
+  'paid':'#1B5E20'                     // koyu yeşil - ödeme tamamlandı
+};
+// Ödeme bekleyen bot status'leri (turuncu + "Als bezahlt" butonu görünür)
+const PENDING_STATUSES = ['awaiting_payment_link','pending_payment'];
+// Modal'da kullanıcının seçebileceği status'ler (bot status'leri hariç)
+const VISIBLE_STATUSES = ['Reserviert','Check-In','Check-Out','Storniert','Gesperrt'];
+const ROOMS = [
+  {id:'101',t:'DZ'}, {id:'102',t:'EDZ'}, {id:'103',t:'DZ'}, {id:'104',t:'DZ'},
+  {id:'201',t:'DZ'}, {id:'202',t:'EDZ'}, {id:'203',t:'DZ'}, {id:'204',t:'DZ'},
+  {id:'301',t:'DZ'}, {id:'302',t:'EDZ'}, {id:'303',t:'DZ'}, {id:'304',t:'DZ'},
+  {id:'401',t:'3-Bett'}, {id:'402',t:'3-Single'}, {id:'403',t:'4-Bett'}, {id:'404',t:'DZ'}
+];
+const MONTHS=[];
+for(let m=3;m<=12;m++) MONTHS.push({y:2026,m,s:1});
+for(let y=2027;y<=2030;y++) for(let m=1;m<=12;m++) MONTHS.push({y,m,s:1});
+const DMO=['','Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const DD=['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+let RES=[], editDocId=null, curModal=null, delDocId=null;
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function dim(y,m){return new Date(y,m,0).getDate();}
+// Yerel (Zürich) takvim günü — toISOString UTC verdiği için gece 00-02 arası yanlış olur
+function todayLocal(){const n=new Date();return dk(n.getFullYear(),n.getMonth()+1,n.getDate());}
+function dow(y,m,d){return new Date(y,m-1,d).getDay();}
+function dk(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function addD(k,n){const d=new Date(k);d.setDate(d.getDate()+n);return dk(d.getFullYear(),d.getMonth()+1,d.getDate());}
+function nts(a,b){return Math.max(0,(new Date(b)-new Date(a))/86400000);}
+function getR(rid,k){return RES.find(r=>r.roomId===rid&&r.checkin<=k&&r.checkout>k);}
+
+// Belirli bir gün+odada aktif rezervasyonlar (Storniert hariç, Gesperrt dahil)
+function getResOnDay(rid, k){
+  return RES.filter(r => r.roomId===rid && r.status!=='Storniert' && r.checkin<=k && r.checkout>k);
+}
+
+// Zimmer ändern dropdown'unu doldur — boş odalar üstte, dolu olanlar altta
+function fillRoomSelect(currentRoomId, ci, co, excludeDocId){
+  const sel = document.getElementById('froom');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">-- Zimmer wählen --</option>';
+  if(!ci || !co){
+    ROOMS.forEach(r => {
+      const o = document.createElement('option');
+      o.value = r.id; o.textContent = 'Zimmer ' + r.id + ' – ' + r.t;
+      sel.appendChild(o);
+    });
+    sel.value = currentRoomId || '';
+    return;
+  }
+  const free = [], busy = [];
+  ROOMS.forEach(room => {
+    const conflict = RES.find(r =>
+      r.roomId === room.id &&
+      r._id !== excludeDocId &&
+      r.status !== 'Storniert' &&
+      r.checkin < co && r.checkout > ci
+    );
+    if(conflict) busy.push(room); else free.push(room);
+  });
+  if(free.length){
+    const og = document.createElement('optgroup');
+    og.label = '✅ Frei';
+    free.forEach(f => {
+      const o = document.createElement('option');
+      o.value = f.id;
+      o.textContent = 'Zimmer ' + f.id + ' – ' + f.t;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  }
+  if(busy.length){
+    const og = document.createElement('optgroup');
+    og.label = '🔴 Belegt';
+    busy.forEach(f => {
+      const o = document.createElement('option');
+      o.value = f.id;
+      o.textContent = 'Zimmer ' + f.id + ' – ' + f.t + ' (belegt)';
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  }
+  sel.value = currentRoomId || '';
+}
+
+function toast(msg,ok){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.background=ok?'#1B5E20':'#B71C1C';
+  t.style.display='block';setTimeout(()=>t.style.display='none',2500);
+}
+
+function updAktiv(){
+  document.getElementById('aktiv').textContent='● '+RES.filter(r=>r.status!=='Storniert'&&r.status!=='Gesperrt').length+' aktiv';
+  const today=todayLocal();
+  const inT=RES.filter(r=>r.checkin===today&&r.status!=='Storniert'&&r.status!=='Gesperrt').length;
+  const outT=RES.filter(r=>r.checkout===today&&r.status!=='Storniert'&&r.status!=='Gesperrt').length;
+  const occ=RES.filter(r=>r.status!=='Storniert'&&r.status!=='Gesperrt'&&r.checkin<=today&&r.checkout>today).length;
+  const elIn=document.getElementById('sc-in');
+  const elOut=document.getElementById('sc-out');
+  const elOcc=document.getElementById('sc-occ');
+  if(elIn) elIn.textContent=inT;
+  if(elOut) elOut.textContent=outT;
+  if(elOcc) elOcc.textContent=occ+'/13';
+}
+
+// ── Firebase Listener ──────────────────────────────────────────────────────
+
+// Saat 11:00'den sonra checkout tarihli rezervasyonları otomatik güncelle
+function checkAutoCheckout(){
+  const now = new Date();
+  if(now.getHours() < 11) return;
+  const today = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  RES.forEach(async r => {
+    if(r.checkout === today && r.status !== 'Check-Out' && r.status !== 'Storniert' && r.status !== 'Gesperrt'){
+      try{ await db.collection('reservations').doc(r._id).update({status:'Check-Out'}); }
+      catch(e){ console.error(e); }
+    }
+  });
+}
+
+// Takvimi güncel tarihe kaydır (buton + ilk yükleme ortak kullanır)
+function scrollToMonth(y,m){
+  const id='month-'+y+'-'+(m<10?'0':'')+m;
+  const el=document.getElementById(id);
+  const wrap=document.getElementById('cal-wrap');
+  if(!el||!wrap) return;
+  wrap.scrollTo({left:Math.max(0,el.offsetLeft-60),behavior:'smooth'});
+  // aktif pill güncelle
+  document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.querySelector('.mnav-btn[data-y="'+y+'"][data-m="'+m+'"]');
+  if(btn){btn.classList.add('active');btn.scrollIntoView({behavior:'smooth',inline:'nearest',block:'nearest'});}
+}
+
+function buildMonthNav(){
+  const nav=document.getElementById('month-nav');
+  if(!nav) return;
+  // month-nav header'ın hemen altında yapışık durmalı
+  const hdr=document.getElementById('header');
+  if(hdr) nav.style.top=hdr.offsetHeight+'px';
+  nav.innerHTML='';
+  const now=new Date();
+  let lastY=null;
+  let grp=null;
+  MONTHS.forEach(({y,m})=>{
+    if(y!==lastY){
+      grp=document.createElement('div');grp.className='mnav-yr';
+      const lbl=document.createElement('span');lbl.className='mnav-yr-lbl';lbl.textContent=y;
+      grp.appendChild(lbl); nav.appendChild(grp); lastY=y;
+    }
+    const btn=document.createElement('button');
+    btn.className='mnav-btn';
+    btn.dataset.y=y; btn.dataset.m=m;
+    btn.textContent=DMO[m];
+    if(y===now.getFullYear()&&m===now.getMonth()+1) btn.classList.add('active');
+    btn.onclick=()=>scrollToMonth(y,m);
+    grp.appendChild(btn);
+  });
+}
+
+function scrollToToday(smooth){
+  const wrap = document.getElementById('cal-wrap');
+  const el = document.getElementById('today-cell');
+  if(!wrap || !el) return;
+  const left = Math.max(0, el.offsetLeft - 250);
+  if(smooth && wrap.scrollTo){ wrap.scrollTo({left:left, behavior:'smooth'}); }
+  else { wrap.scrollLeft = left; }
+}
+
+let _scrolled = false;
+db.collection('reservations').onSnapshot(snap=>{
+  RES = snap.docs.map(d=>({...d.data(),_id:d.id}));
+  document.getElementById('sync').textContent='☁️ Verbunden';
+  document.getElementById('sync').style.background='#E8F5E9';
+  document.getElementById('sync').style.color='#2E7D32';
+  updAktiv();
+  buildCal();
+  updateObBadge();
+  // Überbuchung modal açıksa listeyi tazele
+  if(document.getElementById('obcheck-ov').style.display === 'flex') renderObCheck();
+  checkAutoCheckout();
+  // Modal açıksa check-in buton durumunu güncelle
+  if(editDocId){
+    const cur = RES.find(r=>r._id===editDocId);
+    if(cur){
+      const bci = document.getElementById('bcheckin');
+      if(cur.checkin_sent){
+        bci.textContent = '✅ Gesendet';
+        bci.style.background = '#C62828';
+        bci.style.borderColor = '#C62828';
+        bci.style.color = '#fff';
+      }
+    }
+  }
+  if(!_scrolled){
+    setTimeout(()=>{
+      if(document.getElementById('today-cell')){
+        scrollToToday(false);
+        _scrolled = true;
+      }
+    }, 600);
+  }
+},err=>{
+  document.getElementById('sync').textContent='⚠️ Fehler';
+  document.getElementById('sync').style.background='#FFEBEE';
+  document.getElementById('sync').style.color='#C62828';
+  console.error(err);
+});
+
+// ── Takvim ─────────────────────────────────────────────────────────────────
+function buildCal(){
+  const tbl=document.getElementById('cal');
+  tbl.innerHTML='';
+
+  // Ay başlıkları
+  const tr1=document.createElement('tr');
+  addCorner(tr1,'#1B3A6B','#EEF3FA',true);
+  MONTHS.forEach(({y,m,s})=>{
+    const n=dim(y,m)-s+1;
+    const th=document.createElement('th');
+    th.colSpan=n; th.className='mh'+(y%2===1?' y2027':'');
+    th.textContent=DMO[m]+' '+y; tr1.appendChild(th);
+  });
+  tbl.appendChild(tr1);
+
+  // Gün başlıkları
+  const tr2=document.createElement('tr');
+  const c1=document.createElement('th');c1.className='cz';c1.style.cssText='background:#2D5A9B;position:sticky;left:0;top:0;z-index:20;';tr2.appendChild(c1);
+  const c2=document.createElement('th');c2.className='ct';c2.style.cssText='background:#E0E8F4;display:none;';tr2.appendChild(c2);
+  MONTHS.forEach(({y,m,s})=>{
+    for(let d=s;d<=dim(y,m);d++){
+      const w=dow(y,m,d),iw=w===0||w===6;
+      const _now=new Date();
+      const _isToday=(y===_now.getFullYear()&&m===(_now.getMonth()+1)&&d===_now.getDate());
+      const th=document.createElement('th');
+      th.className='dh'+(iw?' we':'')+(d===s?' ms':'');
+      if(_isToday) th.id='today-cell';
+      if(d===s) th.id=(th.id||'')+'month-'+y+'-'+(m<10?'0':'')+m;
+      th.innerHTML='<div style="font-size:12px;font-weight:700">'+d+'</div><div style="font-size:9px;color:'+(iw?'#E65100':'#7A9ABB')+'">'+DD[w]+'</div>';
+      tr2.appendChild(th);
+    }
+  });
+  tbl.appendChild(tr2);
+
+  // Oda satırları
+  ROOMS.forEach((room,ri)=>{
+    const iS=['3-Bett','3-Single','4-Bett'].includes(room.t);
+    const tr=document.createElement('tr');
+    tr.className=(iS?'suite ':'')+(ri%2===0?'re-even':'re-odd');
+
+    // Bu odanın aktif rezervasyonları (performans: gün döngüsünde tüm RES yerine bunu tara)
+    const roomRes = RES.filter(r => r.roomId===room.id && r.status!=='Storniert');
+    const dayList_ = k => roomRes.filter(r => r.checkin<=k && r.checkout>k);
+
+    // Overbooking var mı? — gün gün taramak yerine çiftler arası çakışma kontrolü
+    let roomHasOb=false;
+    outer: for(let i=0;i<roomRes.length;i++){
+      for(let j=i+1;j<roomRes.length;j++){
+        if(roomRes[i].checkin < roomRes[j].checkout && roomRes[i].checkout > roomRes[j].checkin){
+          roomHasOb=true; break outer;
+        }
+      }
+    }
+    if(roomHasOb) tr.classList.add('ob-row');
+
+    const tdz=document.createElement('td');tdz.className='cz';tdz.style.borderBottom='1px solid #D0DCF0';tdz.textContent='Zi. '+room.id;tr.appendChild(tdz);
+    const tdt=document.createElement('td');tdt.className='ct';tdt.style.borderBottom='1px solid #D0DCF0';tdt.textContent=room.t;tr.appendChild(tdt);
+
+    // ── Unified mantık: günler arasında ilerle ──
+    // colspan-blok ile kapsanan son tarih (exclusive) — buraya kadar olan günleri atla
+    let coveredUntil = null;
+    let coTailRes = null; // checkout tail: hangi rezervasyon bitti
+
+    function makeResBlock(res, isObCell, posClass){
+      const isPending = PENDING_STATUSES.includes(res.status);
+      const bl = document.createElement('div');
+      bl.className = 're' + (posClass ? ' '+posClass : '') + (isPending ? ' re-pending' : '');
+      if(res.status === 'Gesperrt'){
+        // Bloke (Gesperrt) → siyah-beyaz çizgili pattern
+        bl.style.background = 'repeating-linear-gradient(45deg, #1a1a1a, #1a1a1a 7px, #fff 7px, #fff 14px)';
+        bl.style.color = '#000';
+      } else {
+        bl.style.background = res.checkinCompleted ? '#2E9E6B' : (SC[res.status] || SC['Reserviert']);
+      }
+      const sp = document.createElement('span');
+      const n = nts(res.checkin, res.checkout);
+      let icon = '👤 ';
+      if(res.status === 'Gesperrt') icon = '🔒 ';
+      else if(isPending) icon = '🕐 ';
+      else if(res.status === 'paid') icon = '💰 ';
+      else if(res.checkinCompleted) icon = '✅ ';
+      sp.textContent = icon + (res.guest || 'Gesperrt') + ' · ' + n + 'N';
+      const tipParts = [res.guest, n+' Nächte', 'Zi. '+res.roomId];
+      if(res.roomType) tipParts.push(res.roomType.toUpperCase());
+      if(res.persons) tipParts.push(res.persons+' Pers.');
+      if(res.price) tipParts.push('CHF '+res.price);
+      if(res.totalPrice) tipParts.push('Total: '+res.totalPrice+' '+(res.currency||'CHF'));
+      if(isPending) tipParts.push('🕐 ZAHLUNG AUSSTEHEND – nicht bestätigt');
+      else if(res.status === 'paid') tipParts.push('💰 Bezahlt');
+      else if(res.status && !['Reserviert','confirmed','Bestätigt'].includes(res.status)) tipParts.push(res.status);
+      if(res.email) tipParts.push(res.email);
+      if(res.source) tipParts.push('🤖 '+res.source);
+      if(res.checkinCompleted) tipParts.push('✅ Online Check-in completed');
+      if(isObCell) tipParts.push('⚠️ Doppelbuchung');
+      bl.title = tipParts.join(' · ');
+      bl.appendChild(sp);
+      if(isPending){
+        const tag = document.createElement('div');
+        tag.className = 're-tag';
+        tag.textContent = '€?';
+        bl.appendChild(tag);
+      }
+      const rCopy = res;
+      bl.onclick = e => { e.stopPropagation(); openEdit(rCopy); };
+      return bl;
+    }
+
+    MONTHS.forEach(({y,m,s})=>{
+      for(let d=s;d<=dim(y,m);d++){
+        const k = dk(y,m,d);
+        if(coveredUntil && k < coveredUntil) continue;
+        const checkoutTailRes = (coveredUntil === k) ? coTailRes : null;
+        coveredUntil = null;
+        coTailRes = null;
+
+        const w = dow(y,m,d), iw = w===0 || w===6;
+        const dayList = dayList_(k);
+        const isObDay = dayList.length > 1;
+
+        const td = document.createElement('td');
+        td.className = 'dc' + (iS?' sc':'') + (iw?' we':'') + (d===s?' ms':'') + (isObDay?' ob':'');
+
+        if(dayList.length === 0){
+          // Boş hücre (veya sadece checkout tail'li hücre)
+          td.onclick = () => openNew(room.id, k);
+          if(checkoutTailRes){
+            const tail = document.createElement('div');
+            tail.className = 'co-tail';
+            tail.style.background = checkoutTailRes.checkinCompleted ? '#2E9E6B' : (SC[checkoutTailRes.status]||SC['Reserviert']);
+            const _r = checkoutTailRes;
+            tail.onclick = e => { e.stopPropagation(); openEdit(_r); };
+            td.appendChild(tail);
+          }
+        } else if(isObDay){
+          // Overbooked — tek-gün split, 2 kutu yarı yarı
+          td.style.background = (SC[dayList[0].status] || SC['Reserviert']) + '18';
+          dayList.slice(0,2).forEach((r, idx) => {
+            const pos = idx === 0 ? 're-top' : 're-bot';
+            td.appendChild(makeResBlock(r, true, pos));
+          });
+        } else {
+          // Tek rez — colspan-blok (devam ettiği sürece, overbooked günde dur)
+          const res = dayList[0];
+          let span = 1;
+          let cur = addD(k, 1);
+          while(cur < res.checkout){
+            const nextList = dayList_(cur);
+            if(nextList.length !== 1 || nextList[0]._id !== res._id) break;
+            span++;
+            cur = addD(cur, 1);
+          }
+          if(span > 1) td.colSpan = span;
+          td.style.background = (SC[res.status] || SC['Reserviert']) + '18';
+          // Aynı gün checkout+checkin varsa gelen misafir bloğu 37%'den başlasın
+          td.appendChild(makeResBlock(res, false, checkoutTailRes ? 're-arrive' : null));
+          coveredUntil = cur;
+          coTailRes = (cur === res.checkout) ? res : null;
+          // Checkout tail ekle (ayrılan misafir sabah 11:00'e kadar orada)
+          if(checkoutTailRes){
+            const tail = document.createElement('div');
+            tail.className = 'co-tail';
+            tail.style.background = checkoutTailRes.checkinCompleted ? '#2E9E6B' : (SC[checkoutTailRes.status]||SC['Reserviert']);
+            const _r = checkoutTailRes;
+            tail.onclick = e => { e.stopPropagation(); openEdit(_r); };
+            td.appendChild(tail);
+          }
+        }
+        tr.appendChild(td);
+      }
+    });
+    tbl.appendChild(tr);
+  });
+
+  // Belegung
+  const trb=document.createElement('tr');
+  const tbz=document.createElement('td');tbz.colSpan=2;
+  tbz.style.cssText='background:#1B3A6B;border-right:2px solid #2D6FBF;border-top:2px solid #D0DCF0;padding:0 10px;font-size:10px;font-weight:700;color:#fff;height:24px;position:sticky;left:0;z-index:11;';
+  tbz.textContent='Belegung';trb.appendChild(tbz);
+  MONTHS.forEach(({y,m,s})=>{
+    for(let d=s;d<=dim(y,m);d++){
+      const k=dk(y,m,d);
+      const bk=RES.filter(r=>r.status!=='Storniert'&&r.status!=='Gesperrt'&&r.checkin<=k&&r.checkout>k).length;
+      const pct=bk/13;
+      const bg=pct>=0.8?'#C62828':pct>=0.5?'#E65100':'#2E7D32';
+      const td=document.createElement('td');td.className='bc';td.style.background=bg;
+      if(d===s) td.style.borderLeft='2px solid #2D6FBF';
+      td.textContent=bk||'';trb.appendChild(td);
+    }
+  });
+  tbl.appendChild(trb);
+  buildMonthNav();
+}
+
+function addCorner(tr,b1,b2,sticky){
+  const c1=document.createElement('th');c1.className='cz';
+  c1.style.cssText='background:'+b1+';'+(sticky?'position:sticky;left:0;top:0;z-index:20;':'')+'height:36px;';tr.appendChild(c1);
+  const c2=document.createElement('th');c2.className='ct';
+  c2.style.cssText='background:'+b2+';'+(sticky?'display:none;':'');tr.appendChild(c2);
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────
+function openNew(roomId,key){
+  curModal={roomId,key};editDocId=null;
+  document.getElementById('mt').textContent='➕ Neue Reservierung';
+  document.getElementById('ms').textContent='Zimmer '+roomId+' · '+ROOMS.find(r=>r.id===roomId)?.t;
+  document.getElementById('departure-info').style.display='none';
+  document.getElementById('fg').value='';
+  document.getElementById('fi').value=key;
+  document.getElementById('fo').value=addD(key,1);
+  document.getElementById('fp').value='2';
+  document.getElementById('fpr').value='';
+  document.getElementById('fn').value='';
+  document.getElementById('fph').value='';
+  document.getElementById('fe').value='';
+  document.getElementById('bdd').style.display='none';
+  document.getElementById('brr').style.display='none';
+  document.getElementById('bmail').style.display='none';
+  document.getElementById('bcheckin').style.display='none';
+  document.getElementById('bdoor').style.display='none';
+  document.getElementById('bpaid').style.display='none';
+  document.getElementById('zimmer-change-div').style.display='none';
+  document.getElementById('froom').value='';
+  document.getElementById('bsv').textContent='✅ Anlegen';
+  setStatus('Reserviert');updN();
+  document.getElementById('ov').classList.add('open');
+  setTimeout(()=>document.getElementById('fg').focus(),100);
+}
+
+function openEdit(res){
+  curModal={roomId:res.roomId,key:res.checkin};editDocId=res._id;
+  document.getElementById('mt').textContent='✏️ Reservierung bearbeiten';
+  document.getElementById('ms').textContent='Zimmer '+res.roomId+' · '+ROOMS.find(r=>r.id===res.roomId)?.t;
+  // Planlanan çıkış saati (misafir online check-in'de belirtti) — erken ise turuncu vurgu
+  var _dep=res.plannedDeparture, _di=document.getElementById('departure-info');
+  if(_dep && _dep!=='11:00' && String(_dep).indexOf('Normal')<0){
+    _di.style.display=''; _di.textContent='⏰ Erken çıkış / früher Check-out: '+_dep;
+    _di.style.background='#FFF3E0'; _di.style.color='#E65100';
+  } else if(_dep){
+    _di.style.display=''; _di.textContent='Check-out Zeit: '+_dep;
+    _di.style.background='#F1F5F9'; _di.style.color='#475569';
+  } else { _di.style.display='none'; }
+  document.getElementById('fg').value=res.guest;
+  document.getElementById('fi').value=res.checkin;
+  document.getElementById('fo').value=res.checkout;
+  document.getElementById('fp').value=res.persons||'2';
+  document.getElementById('fpr').value=res.price||'';
+  document.getElementById('fn').value=res.note||'';
+  document.getElementById('fe').value=res.email||'';
+  document.getElementById('fph').value=res.guestPhone||'';
+  document.getElementById('bdd').style.display='';
+  document.getElementById('brr').style.display='';
+  document.getElementById('bmail').style.display='';
+  document.getElementById('bcheckin').style.display='';
+  // Türcode butonunu her rezervasyonda SIFIRLA (yoksa önceki odanın kodu ekranda kalır)
+  var bdr = document.getElementById('bdoor');
+  bdr.style.display='';
+  bdr.textContent='🔑 Türcode';
+  bdr.style.background='#F3E5F5'; bdr.style.borderColor='#CE93D8'; bdr.style.color='#6A1B9A';
+  bdr.disabled=false;
+  document.getElementById('bpaid').style.display = PENDING_STATUSES.includes(res.status) ? '' : 'none';
+  // Check-in butonunu duruma göre ayarla
+  const bci = document.getElementById('bcheckin');
+  if(res.checkin_sent){
+    bci.textContent = '✅ Gesendet';
+    bci.style.background = '#C62828';
+    bci.style.borderColor = '#C62828';
+    bci.style.color = '#fff';
+  } else {
+    bci.textContent = '🔗 Check-in';
+    bci.style.background = '#E8F5E9';
+    bci.style.borderColor = '#A5D6A7';
+    bci.style.color = '#1B5E20';
+  }
+  document.getElementById('zimmer-change-div').style.display='';
+  fillRoomSelect(res.roomId, res.checkin, res.checkout, res._id);
+  document.getElementById('bsv').textContent='💾 Speichern';
+  setStatus(res.status);updN();
+  document.getElementById('ov').classList.add('open');
+}
+
+function closeM(){document.getElementById('ov').classList.remove('open');}
+
+function setStatus(s){
+  document.querySelectorAll('.sb').forEach(b=>{
+    const a=b.dataset.s===s;
+    b.classList.toggle('act',a);
+    b.style.background=a?SC[s]:'#F4F6F9';
+    b.style.color=a?'#fff':'#4A6A8A';
+    b.style.borderColor=a?SC[s]:'#D0DCF0';
+  });
+}
+
+function updN(){
+  const ci=document.getElementById('fi').value;
+  const co=document.getElementById('fo').value;
+  const n=ci&&co?nts(ci,co):0;
+  const ni=document.getElementById('ni');
+  if(n>0){
+    ni.style.display='flex';
+    document.getElementById('nc').textContent=n;
+    const pr=parseFloat(document.getElementById('fpr').value)||0;
+    document.getElementById('tp').textContent=pr>0?'∑ '+pr.toFixed(0)+' CHF':'';
+  } else ni.style.display='none';
+}
+
+async function saveR(){
+  const guest=document.getElementById('fg').value.trim();
+  const ci=document.getElementById('fi').value;
+  const co=document.getElementById('fo').value;
+  // Kullanıcı bir status butonuna basmadıysa: editing ise mevcut status'u koru (örn. awaiting_payment_link), yoksa Reserviert
+  let status = document.querySelector('.sb.act')?.dataset.s;
+  if(!status){
+    if(editDocId){
+      const cur = RES.find(r => r._id === editDocId);
+      status = cur?.status || 'Reserviert';
+    } else {
+      status = 'Reserviert';
+    }
+  }
+  if(status!=='Gesperrt'&&(!guest||!ci||!co)){toast('⚠️ Pflichtfelder ausfüllen!',false);return;}
+  if(status==='Gesperrt'&&(!ci||!co)){toast('⚠️ Bitte Datum ausfüllen!',false);return;}
+  if(ci>=co){toast('⚠️ Abreise nach Anreise!',false);return;}
+  const email=document.getElementById('fe').value.trim();
+  const newRoom=document.getElementById('froom').value;
+
+  // Hedef oda: değiştirilmişse yeni oda, yoksa mevcut oda
+  const targetRoom = newRoom || curModal.roomId;
+  // Çakışma kontrolü — yeni kayıt VE tarih değişikliği dahil her kayıtta
+  const conflict = RES.find(r =>
+    r.roomId === targetRoom &&
+    r._id !== editDocId &&
+    r.status !== 'Storniert' &&
+    r.checkin < co && r.checkout > ci
+  );
+  if(conflict){
+    const pendingEntry = {
+      _id: editDocId,
+      roomId: targetRoom,
+      guest, checkin:ci, checkout:co,
+      persons: document.getElementById('fp').value,
+      price: document.getElementById('fpr').value,
+      status, note: document.getElementById('fn').value,
+      email,
+      guestPhone: document.getElementById('fph').value.trim().replace(/\s+/g,'')
+    };
+    showUberbuchung(pendingEntry, conflict);
+    return;
+  }
+
+  const entry={
+    roomId:newRoom||curModal.roomId,guest,checkin:ci,checkout:co,
+    persons:document.getElementById('fp').value,
+    price:document.getElementById('fpr').value,
+    status,note:document.getElementById('fn').value,
+    email,
+    guestPhone:document.getElementById('fph').value.trim().replace(/\s+/g,'')
+  };
+  try{
+    if(editDocId) await db.collection('reservations').doc(editDocId).update(entry);
+    else await db.collection('reservations').add(entry);
+    closeM();toast('💾 Gespeichert!',true);
+
+  }catch(e){toast('⚠️ Fehler: '+e.message,false);}
+}
+
+async function markPaid(){
+  if(!editDocId){ toast('⚠️ Keine Reservierung ausgewählt!', false); return; }
+  const btn = document.getElementById('bpaid');
+  btn.textContent = '⏳ …';
+  btn.disabled = true;
+  try{
+    await db.collection('reservations').doc(editDocId).update({ status: 'paid' });
+    // checkin_sent'e dokunma (false kalır)
+    btn.textContent = '✅ Bezahlt';
+    btn.disabled = false;
+    btn.style.background = '#E8F5E9';
+    btn.style.borderColor = '#A5D6A7';
+    btn.style.color = '#1B5E20';
+    toast('💰 Als bezahlt markiert!', true);
+    setTimeout(() => closeM(), 800);
+  } catch(e){
+    btn.textContent = '💰 Als bezahlt';
+    btn.disabled = false;
+    toast('⚠️ Fehler: ' + e.message, false);
+  }
+}
+
+function confDel(){delDocId=editDocId;document.getElementById('dov').classList.add('open');}
+function closeDel(){document.getElementById('dov').classList.remove('open');}
+async function doDel(){
+  try{
+    await db.collection('reservations').doc(delDocId).delete();
+    closeDel();closeM();toast('🗑 Gelöscht',true);
+  }catch(e){toast('⚠️ Fehler!',false);}
+}
+
+// ── Rechnung: PDF üret → Firebase Storage → Mail'de download linki ────────
+async function doRechnung(){
+  const email = document.getElementById('fe').value.trim();
+  if(!email){ toast('⚠️ Bitte Gast E-Mail eingeben!', false); return; }
+
+  const guest=document.getElementById('fg').value.trim();
+  const ci=document.getElementById('fi').value;
+  const co=document.getElementById('fo').value;
+  const persons=document.getElementById('fp').value;
+  const price=parseFloat(document.getElementById('fpr').value)||0;
+  const note=document.getElementById('fn').value;
+  const roomId=curModal.roomId;
+  const roomType=ROOMS.find(r=>r.id===roomId)?.t||'';
+  const n=nts(ci,co);
+  const total=price; // Net Total: kullanıcı son fiyatı giriyor
+  const netto=parseFloat((total/1.038).toFixed(2));
+  const mwst=parseFloat((total - netto).toFixed(2));
+  const gesamt=total.toFixed(2);
+  const rNr='RG-'+Date.now().toString().slice(-6);
+  function fmt(d){if(!d)return'';const[y,m,day]=d.split('-');return day+'.'+m+'.'+y;}
+
+  const btn = document.getElementById('brr');
+  btn.textContent = '⏳ PDF…';
+  btn.disabled = true;
+
+  // 1) PDF için HTML fatura içeriği
+  const rechHtml = `
+<div style="font-family:'DM Sans',sans-serif;background:#fff;color:#1A2A3A;padding:40px;width:700px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:3px solid #1B3A6B;">
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:26px;color:#1B3A6B;">🏨 Nani City Hotel</div>
+      <div style="font-size:11px;color:#4A6A8A;line-height:1.8;margin-top:6px;">Nani City Hotel · Zürich<br>Tel: +41 77 969 30 12<br>info@nanicityhotel.ch</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:20px;font-weight:700;color:#1B3A6B;">Rechnung</div>
+      <div style="font-size:11px;color:#4A6A8A;line-height:1.8;margin-top:6px;">Nr: ${rNr}<br>Datum: ${fmt(todayLocal())}</div>
+    </div>
+  </div>
+  <div style="font-size:10px;font-weight:700;color:#7A9ABB;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Gast</div>
+  <div style="background:#F4F8FF;border-radius:10px;padding:16px 20px;margin-bottom:28px;">
+    <div style="font-size:18px;font-weight:700;color:#1B3A6B;">${guest}</div>
+    <div style="font-size:12px;color:#4A6A8A;margin-top:4px;">Zimmer ${roomId} · ${roomType} · ${persons} Person(en)</div>
+  </div>
+  <div style="font-size:10px;font-weight:700;color:#7A9ABB;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Leistungen</div>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+    <thead>
+      <tr>
+        <th style="background:#1B3A6B;color:#fff;padding:10px 14px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;text-align:left;">Beschreibung</th>
+        <th style="background:#1B3A6B;color:#fff;padding:10px 14px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Anreise</th>
+        <th style="background:#1B3A6B;color:#fff;padding:10px 14px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Abreise</th>
+        <th style="background:#1B3A6B;color:#fff;padding:10px 14px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Nächte</th>
+        <th style="background:#1B3A6B;color:#fff;padding:10px 14px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;text-align:right;">Betrag</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #E8EEF8;">Zimmer ${roomId} – ${roomType}${note?'<br><small style="color:#7A9ABB">'+note+'</small>':''}</td>
+        <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #E8EEF8;">${fmt(ci)}</td>
+        <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #E8EEF8;">${fmt(co)}</td>
+        <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #E8EEF8;">${n}</td>
+        <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #E8EEF8;text-align:right;font-weight:600;">CHF ${total.toFixed(2)}</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-left:auto;width:260px;">
+    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#4A6A8A;border-bottom:1px solid #E8EEF8;"><span>Nettobetrag</span><span>CHF ${netto.toFixed(2)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#4A6A8A;border-bottom:1px solid #E8EEF8;"><span>MwSt 3.8%</span><span>CHF ${mwst.toFixed(2)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:12px 0;font-size:16px;font-weight:700;color:#1B3A6B;border-top:2px solid #1B3A6B;margin-top:4px;"><span>Gesamtbetrag</span><span>CHF ${gesamt}</span></div>
+    <div style="text-align:right;font-size:10px;color:#7A9ABB;margin-top:4px;">inkl. Nächtigungstaxe</div>
+  </div>
+  <div style="margin-top:24px;background:#E8F5E9;border:2px solid #2E7D32;border-radius:10px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-size:18px;font-weight:700;color:#1B5E20;letter-spacing:1px;">✅ BEZAHLT / PAID</div>
+    <div style="font-size:11px;color:#2E7D32;text-align:right;">Betrag dankend erhalten<br>Datum: ${fmt(todayLocal())}</div>
+  </div>
+  <div style="margin-top:24px;padding-top:20px;border-top:1px solid #E8EEF8;display:flex;justify-content:space-between;font-size:10px;color:#7A9ABB;line-height:1.8;">
+    <div><strong>Zahlung</strong><br>Beglichen – keine Zahlung mehr offen<br>Vielen Dank für Ihren Aufenthalt!</div>
+    <div style="text-align:right"><strong>Nani City Hotel</strong><br>Zürich</div>
+  </div>
+</div>`;
+
+  // 2) Geçici DOM elemanı oluştur (PDF için)
+  const wrap = document.createElement('div');
+  wrap.style.position='absolute'; wrap.style.left='-9999px'; wrap.style.top='0';
+  wrap.innerHTML = rechHtml;
+  document.body.appendChild(wrap);
+
+  try{
+    // 3) HTML → PDF blob
+    const pdfBlob = await html2pdf().set({
+      margin: 0,
+      filename: rNr + '.pdf',
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(wrap.firstElementChild).output('blob');
+
+    document.body.removeChild(wrap);
+
+    btn.textContent = '⏳ Upload…';
+
+    // 4) Firebase Storage'a yükle
+    const ref = storage.ref().child('rechnungen/' + rNr + '.pdf');
+    await ref.put(pdfBlob, { contentType: 'application/pdf' });
+    const url = await ref.getDownloadURL();
+
+    btn.textContent = '⏳ Senden…';
+
+    // 5) EmailJS ile mail gönder (PDF link'i parametre olarak)
+    await emailjs.send('service_1l9vt1l','template_ao61hhl',{
+      gast_email: email,
+      gast_name:  guest,
+      rechnung_nr: rNr,
+      datum:      fmt(todayLocal()),
+      zimmer:     roomId + ' – ' + roomType,
+      anreise:    fmt(ci),
+      abreise:    fmt(co),
+      naechte:    String(n),
+      personen:   persons,
+      netto:      netto.toFixed(2),
+      mwst:       mwst.toFixed(2),
+      gesamt:     gesamt,
+      rechnung_url: url,
+    });
+
+    btn.textContent = '✅ Gesendet';
+    btn.disabled = false;
+    toast('✉️ Rechnung-PDF gesendet an '+email, true);
+  } catch(e){
+    if(wrap.parentNode) document.body.removeChild(wrap);
+    btn.textContent = '🧾 PDF';
+    btn.disabled = false;
+    toast('⚠️ Fehler: '+(e.message||JSON.stringify(e)), false);
+    console.error(e);
+  }
+}
+
+// ── Status butonları (sadece kullanıcının seçebileceği) ───────────────────
+VISIBLE_STATUSES.forEach(s=>{
+  const b=document.createElement('button');
+  b.className='sb';b.dataset.s=s;b.textContent=s;
+  b.onclick=()=>setStatus(s);
+  document.getElementById('sr').appendChild(b);
+});
+
+document.getElementById('fi').addEventListener('change',()=>{
+  updN();
+  if(document.getElementById('zimmer-change-div').style.display!=='none'){
+    fillRoomSelect(document.getElementById('froom').value, document.getElementById('fi').value, document.getElementById('fo').value, editDocId);
+  }
+});
+document.getElementById('fo').addEventListener('change',()=>{
+  updN();
+  if(document.getElementById('zimmer-change-div').style.display!=='none'){
+    fillRoomSelect(document.getElementById('froom').value, document.getElementById('fi').value, document.getElementById('fo').value, editDocId);
+  }
+});
+document.getElementById('fpr').addEventListener('input',updN);
+
+let ubPendingEntry = null;
+let ubConflictRes = null;
+document.getElementById('ov').addEventListener('click',function(e){if(e.target===this)closeM();});
+
+// Aynı isim + aynı anreise tarihine sahip kardeş rezervasyonları bul
+function findGroupRes(guest, ci){
+  return RES.filter(r =>
+    r.guest === guest &&
+    r.checkin === ci &&
+    r.status !== 'Storniert' &&
+    r.status !== 'Gesperrt'
+  );
+}
+
+async function sendCheckinLink(){
+  const guest = document.getElementById('fg').value.trim();
+  const email = document.getElementById('fe').value.trim();
+  const ci    = document.getElementById('fi').value;
+  const co    = document.getElementById('fo').value;
+  const roomId = curModal.roomId;
+
+  if(!email){ toast('⚠️ Bitte Gast E-Mail eingeben!', false); return; }
+
+  function fmt(d){ if(!d)return''; const[y,m,day]=d.split('-'); return day+'.'+m+'.'+y; }
+
+  // Grup rezervasyonları: aynı isim + aynı anreise
+  const group = findGroupRes(guest, ci);
+  const roomIds = group.length > 0
+    ? [...new Set(group.map(r=>r.roomId))].sort((a,b)=>parseInt(a)-parseInt(b))
+    : [roomId];
+  const zimmerParam = roomIds.join(',');
+  const zimmerLabel = roomIds.length > 1 ? 'Zimmer ' + roomIds.join(', ') : roomIds[0];
+
+  // En geç checkout tarihini al (grup içinde farklı olabilir)
+  const maxCo = group.length > 0
+    ? group.map(r=>r.checkout).sort().pop()
+    : co;
+
+  // Check-in form linki
+  const checkinUrl = 'https://kernhofpms1.netlify.app/checkin.html?zimmer=' + zimmerParam + '&name=' + encodeURIComponent(guest) + '&anreise=' + ci + '&abreise=' + maxCo;
+
+  const btn = document.getElementById('bcheckin');
+  btn.textContent = '⏳ Senden…';
+  btn.disabled = true;
+
+  // Türcode(s) for the room(s) that have a lock (empty string if none / TTLock unavailable).
+  const tuercode = await fetchDoorCodesText(roomIds, ci, maxCo, guest);
+
+  emailjs.send('service_1l9vt1l', 'template_yhmglpo', {
+    gast_email: email,
+    gast_name: guest,
+    zimmer: zimmerLabel,
+    anreise: fmt(ci),
+    abreise: fmt(maxCo),
+    naechte: 'Online Check-in',
+    personen: '–',
+    schluessel: checkinUrl,
+    tuercode: tuercode,
+  }).then(()=>{
+    btn.textContent = '✅ Gesendet';
+    btn.disabled = false;
+    btn.style.background = '#C62828';
+    btn.style.borderColor = '#C62828';
+    btn.style.color = '#fff';
+    const lbl = roomIds.length>1 ? ' ('+roomIds.length+' Zimmer)' : '';
+    toast('🔗 Check-in Link gesendet an ' + email + lbl, true);
+    // Tüm grup rezervasyonlarını checkin_sent:true yap
+    const targets = group.length > 0 ? group : (editDocId ? [{_id: editDocId}] : []);
+    targets.forEach(r => {
+      if(r._id) db.collection('reservations').doc(r._id).update({checkin_sent: true});
+    });
+  }).catch((err)=>{
+    btn.textContent = '🔗 Check-in Link';
+    btn.disabled = false;
+    toast('⚠️ Fehler: ' + (err.text||JSON.stringify(err)), false);
+  });
+}
+
+emailjs.init('KLJ29S8582QqvDDpi');
+
+// ── TTLock Türcode ──────────────────────────────────────────────────────────
+// Calls the bot's door-code endpoint (which talks to TTLock). The bot generates
+// a passcode valid checkin 14:00 -> checkout 11:00 and stores it on the reservation.
+const BOT_URL = 'https://kernhof-whatsapp-bot-production.up.railway.app';
+const PMS_DOOR_KEY = 'xsUbewFP9n1sg94EXOazIMwChAVnP3XN';
+
+// Fetch a door code per room (rooms without a paired lock are skipped) and return
+// a guest-facing text block, or '' if no room has a code. Used in the check-in mail.
+async function fetchDoorCodesText(roomIds, ci, co, guest){
+  const lines = [];
+  for(const room of roomIds){
+    try{
+      const params = new URLSearchParams({ key: PMS_DOOR_KEY, room: String(room), checkin: ci, checkout: co, name: guest||'Gast' });
+      const r = await fetch(BOT_URL + '/admin/door-code?' + params.toString());
+      const d = await r.json();
+      if(r.ok && d.code){ lines.push('Zimmer ' + d.room + ': ' + d.code + '#'); }
+    }catch(e){ /* no lock for this room or TTLock down -> skip */ }
+  }
+  if(!lines.length) return '';
+  return '🔑 Türcode (gültig ab Anreise 14:00 / valid from 14:00):\n'
+    + lines.join('\n')
+    + '\n\nCode am Türschloss eingeben und mit # bestätigen.\nEnter the code on the keypad and confirm with #.';
+}
+
+async function sendDoorCode(){
+  const guest  = document.getElementById('fg').value.trim();
+  const ci     = document.getElementById('fi').value;
+  const co     = document.getElementById('fo').value;
+  const phone  = document.getElementById('fph').value.trim().replace(/\s+/g,'');
+  const roomId = curModal.roomId;
+  if(!ci || !co){ toast('⚠️ Anreise/Abreise fehlt', false); return; }
+
+  const btn = document.getElementById('bdoor');
+  const prev = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+
+  const params = new URLSearchParams({
+    key: PMS_DOOR_KEY,
+    room: roomId, checkin: ci, checkout: co, name: guest || 'Gast',
+  });
+  if(editDocId) params.set('reservationId', editDocId);
+  if(phone){ params.set('phone', phone); params.set('send', '1'); } // WhatsApp only delivers within the 24h window
+
+  try{
+    const r = await fetch(BOT_URL + '/admin/door-code?' + params.toString());
+    const d = await r.json();
+    if(!r.ok || d.error){ throw new Error(d.error || ('HTTP ' + r.status)); }
+    btn.textContent = '🔑 ' + d.code + '#';
+    btn.style.background = '#6A1B9A'; btn.style.borderColor = '#6A1B9A'; btn.style.color = '#fff';
+    let msg = '🔑 Zimmer ' + d.room + ': ' + d.code + '#  (' + d.validFrom + ' → ' + d.validTo + ')';
+    if(d.sent) msg += ' · 📱 an Gast gesendet';
+    else if(d.sendError) msg += ' · ⚠️ WhatsApp: ' + d.sendError;
+    toast(msg, true);
+    btn.disabled = false;
+  }catch(err){
+    btn.textContent = prev; btn.disabled = false;
+    toast('⚠️ Türcode Fehler: ' + err.message, false);
+  }
+}
+
+function sendConfirmMail(){
+  const guest = document.getElementById('fg').value.trim();
+  const email = document.getElementById('fe').value.trim();
+  const ci    = document.getElementById('fi').value;
+  const co    = document.getElementById('fo').value;
+  const persons = document.getElementById('fp').value;
+  const roomId  = curModal.roomId;
+
+  if(!email){ toast('⚠️ Bitte Gast E-Mail eingeben!', false); return; }
+
+  function fmt(d){ if(!d)return''; const[y,m,day]=d.split('-'); return day+'.'+m+'.'+y; }
+  const n = Math.max(0,(new Date(co)-new Date(ci))/86400000);
+
+  // Grup rezervasyonları
+  const group = findGroupRes(guest, ci);
+  const roomIds = group.length > 0
+    ? [...new Set(group.map(r=>r.roomId))].sort((a,b)=>parseInt(a)-parseInt(b))
+    : [roomId];
+  const zimmerParam = roomIds.join(',');
+  const maxCo = group.length > 0 ? group.map(r=>r.checkout).sort().pop() : co;
+
+  const btn = document.getElementById('bmail');
+  btn.textContent = '⏳ Senden…';
+  btn.disabled = true;
+
+  const checkinUrl = 'https://kernhofpms1.netlify.app/checkin.html?zimmer=' + zimmerParam + '&name=' + encodeURIComponent(guest) + '&anreise=' + ci + '&abreise=' + maxCo;
+
+  emailjs.send('service_1l9vt1l', 'template_yhmglpo', {
+    gast_email: email,
+    gast_name:  guest,
+    zimmer:     ' ',
+    anreise:    fmt(ci),
+    abreise:    fmt(co),
+    naechte:    String(n),
+    personen:   persons,
+    schluessel: checkinUrl,
+  }).then(()=>{
+    btn.textContent = '✉️ Mail senden';
+    btn.disabled = false;
+    toast('✉️ Bestätigung gesendet an ' + email, true);
+  }).catch((err)=>{
+    btn.textContent = '✉️ Mail senden';
+    btn.disabled = false;
+    toast('⚠️ Mail Fehler: ' + (err.text||JSON.stringify(err)), false);
+  });
+}
+
+function closeUb(){ document.getElementById('ub-ov').style.display='none'; }
+
+function showUberbuchung(entry, conflictRes){
+  ubPendingEntry = entry;
+  ubConflictRes = conflictRes;
+  
+  // Info göster
+  document.getElementById('ub-info').innerHTML = 
+    '<strong>Neu:</strong> ' + entry.guest + ' → Zimmer ' + entry.roomId + ' (' + entry.checkin + ' – ' + entry.checkout + ')<br>' +
+    '<strong>Belegt:</strong> ' + conflictRes.guest + ' → Zimmer ' + conflictRes.roomId + ' (' + conflictRes.checkin + ' – ' + conflictRes.checkout + ')';
+  
+  // Boş odaları bul
+  const select = document.getElementById('ub-room');
+  select.innerHTML = '<option value="">-- Freies Zimmer wählen --</option>';
+  
+  ROOMS.forEach(room => {
+    if(room.id === entry.roomId) return; // Aynı oda
+    // Bu odada çakışan rezervasyon var mı?
+    const busy = RES.find(r => 
+      r.roomId === room.id && 
+      r._id !== conflictRes._id &&
+      r.status !== 'Storniert' &&
+      r.checkin < conflictRes.checkout && r.checkout > conflictRes.checkin
+    );
+    if(!busy){
+      const opt = document.createElement('option');
+      opt.value = room.id;
+      opt.textContent = 'Zimmer ' + room.id + ' – ' + room.t;
+      select.appendChild(opt);
+    }
+  });
+  
+  document.getElementById('ub-ov').style.display='flex';
+}
+
+async function doUberbuchung(){
+  const newRoomForConflict = document.getElementById('ub-room').value;
+  if(!newRoomForConflict){ toast('⚠️ Bitte ein Zimmer wählen!', false); return; }
+
+  try{
+    // Önce çakışan müşteriyi yeni odaya taşı
+    await db.collection('reservations').doc(ubConflictRes._id).update({roomId: newRoomForConflict});
+    // Sonra yeni müşteriyi kaydet
+    if(ubPendingEntry._id){
+      const id = ubPendingEntry._id;
+      delete ubPendingEntry._id;
+      await db.collection('reservations').doc(id).update(ubPendingEntry);
+    } else {
+      await db.collection('reservations').add(ubPendingEntry);
+    }
+    closeUb();
+    closeM();
+    toast('✅ Erfolgreich verschoben!', true);
+  } catch(e){
+    toast('⚠️ Fehler: ' + e.message, false);
+  }
+}
+
+// İki rezervasyonu da aynı odada tut (overbooking olarak işaretle)
+async function doDoppelbuchungAnyway(){
+  try{
+    const entry = { ...ubPendingEntry };
+    if(entry._id){
+      const id = entry._id;
+      delete entry._id;
+      await db.collection('reservations').doc(id).update(entry);
+    } else {
+      await db.collection('reservations').add(entry);
+    }
+    closeUb();
+    closeM();
+    toast('🔴 Doppelbuchung gespeichert!', true);
+  } catch(e){
+    toast('⚠️ Fehler: ' + e.message, false);
+  }
+}
+
+// ════ Überbuchung Kontrol ════════════════════════════════════════════════
+function computeOverbookings(){
+  const pairs = [];
+  for(let n=1;n<=13;n++){
+    const roomId = String(n);
+    const rs = RES.filter(r => r.roomId===roomId && r.status!=='Storniert' && r.status!=='Gesperrt');
+    for(let i=0;i<rs.length;i++){
+      for(let j=i+1;j<rs.length;j++){
+        const a=rs[i], b=rs[j];
+        if(a.checkin < b.checkout && a.checkout > b.checkin){
+          // Sonra başlayan = taşınacak aday (b)
+          const [first, second] = a.checkin <= b.checkin ? [a,b] : [b,a];
+          pairs.push({ roomId, first, second });
+        }
+      }
+    }
+  }
+  return pairs;
+}
+
+function updateObBadge(){
+  const cnt = computeOverbookings().length;
+  const el = document.getElementById('ob-count');
+  const btn = document.getElementById('obBtn');
+  if(!el || !btn) return;
+  if(cnt > 0){
+    el.textContent = cnt;
+    el.style.display = '';
+    btn.style.background = '#C62828';
+  } else {
+    el.style.display = 'none';
+    btn.style.background = '#9E9E9E';
+  }
+}
+
+function openObCheck(){
+  renderObCheck();
+  document.getElementById('obcheck-ov').style.display = 'flex';
+}
+function closeObCheck(){ document.getElementById('obcheck-ov').style.display = 'none'; }
+
+function renderObCheck(){
+  const list = document.getElementById('obcheck-list');
+  const pairs = computeOverbookings();
+  if(pairs.length === 0){
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:#2E7D32;font-size:14px;font-weight:700;">✅ Keine Überbuchungen — alles sauber!</div>';
+    return;
+  }
+  list.innerHTML = '';
+  pairs.forEach((p, idx) => {
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#FFF8F0;border:1.5px solid #FFCDD2;border-radius:12px;padding:14px;margin-bottom:12px;';
+    // Boş odaları bul (taşınacak olan = second, onun tarihleri için)
+    const s = p.second;
+    const freeRooms = [];
+    for(let n=1;n<=13;n++){
+      const rid = String(n);
+      if(rid === p.roomId) continue;
+      const busy = RES.find(r => r.roomId===rid && r._id!==s._id &&
+        r.status!=='Storniert' && r.status!=='Gesperrt' &&
+        r.checkin < s.checkout && r.checkout > s.checkin);
+      if(!busy) freeRooms.push({id: rid, t: n===13?'Suite':'DZ'});
+    }
+    let opts = '<option value="">-- Freies Zimmer --</option>';
+    freeRooms.forEach(f => { opts += '<option value="'+f.id+'">Zimmer '+f.id+' – '+f.t+'</option>'; });
+
+    card.innerHTML =
+      '<div style="font-size:12px;font-weight:700;color:#C62828;margin-bottom:8px;">🔴 Zimmer '+p.roomId+'</div>'+
+      '<div style="font-size:13px;line-height:1.7;margin-bottom:10px;">'+
+        '<div>① <strong>'+p.first.guest+'</strong> · '+p.first.checkin+' → '+p.first.checkout+'</div>'+
+        '<div>② <strong>'+s.guest+'</strong> · '+s.checkin+' → '+s.checkout+'</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'+
+        '<span style="font-size:11px;color:#7A9ABB;">② verschieben →</span>'+
+        '<select id="ob-sel-'+idx+'" style="flex:1;min-width:140px;padding:8px 10px;border-radius:8px;border:1.5px solid #D0DCF0;background:#fff;font-size:12px;font-family:DM Sans,sans-serif;">'+opts+'</select>'+
+        '<button onclick="moveObRes(\''+s._id+'\', \'ob-sel-'+idx+'\')" style="padding:8px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#1B3A6B,#2D6FBF);color:#fff;font-size:12px;font-weight:700;cursor:pointer;">Verschieben</button>'+
+        '<button onclick="openEditById(\''+s._id+'\')" style="padding:8px 12px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F4F6F9;color:#4A6A8A;font-size:12px;cursor:pointer;">✏️</button>'+
+      '</div>'+
+      (freeRooms.length===0 ? '<div style="font-size:11px;color:#C62828;margin-top:6px;">⚠️ Kein freies Zimmer in diesem Zeitraum!</div>' : '');
+    list.appendChild(card);
+  });
+}
+
+async function moveObRes(docId, selId){
+  const newRoom = document.getElementById(selId).value;
+  if(!newRoom){ toast('⚠️ Bitte ein Zimmer wählen!', false); return; }
+  try{
+    await db.collection('reservations').doc(docId).update({ roomId: newRoom });
+    toast('✅ Verschoben nach Zimmer '+newRoom, true);
+    setTimeout(renderObCheck, 600); // listeyi tazele
+  }catch(e){ toast('⚠️ Fehler: '+e.message, false); }
+}
+
+function openEditById(docId){
+  const r = RES.find(x => x._id === docId);
+  if(r){ closeObCheck(); openEdit(r); }
+}
+
+// ════ Tagespreise (Daily prices) ════════════════════════════════════════
+let PRICES = {}; // { 'YYYY-MM-DD': { dz: 120, suite: 200 } }
+let curPriceMonth = { y: new Date().getFullYear(), m: new Date().getMonth() + 1 };
+let editingDate = null;
+
+// Firestore listener — eski {price:x} formatını {dz:x} olarak oku (geriye uyumlu)
+db.collection('daily_prices').onSnapshot(snap => {
+  PRICES = {};
+  snap.docs.forEach(d => {
+    const data = d.data();
+    PRICES[d.id] = {
+      dz: data.dz != null ? data.dz : (data.price != null ? data.price : null),
+      suite: data.suite != null ? data.suite : null
+    };
+  });
+  if (document.getElementById('prices-ov').classList.contains('open')) {
+    renderPricesGrid();
+  }
+});
+
+function openPrices(){
+  document.getElementById('prices-ov').classList.add('open');
+  curPriceMonth = { y: new Date().getFullYear(), m: new Date().getMonth() + 1 };
+  renderPricesGrid();
+}
+function closePrices(){ document.getElementById('prices-ov').classList.remove('open'); }
+function pricesPrevMonth(){
+  curPriceMonth.m--;
+  if(curPriceMonth.m < 1){ curPriceMonth.m = 12; curPriceMonth.y--; }
+  renderPricesGrid();
+}
+function pricesNextMonth(){
+  curPriceMonth.m++;
+  if(curPriceMonth.m > 12){ curPriceMonth.m = 1; curPriceMonth.y++; }
+  renderPricesGrid();
+}
+
+function renderPricesGrid(){
+  const {y, m} = curPriceMonth;
+  document.getElementById('prices-month').textContent = DMO[m] + ' ' + y;
+  const grid = document.getElementById('prices-grid');
+  grid.innerHTML = '';
+  // Day headers Mo-So
+  const dayLabels = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+  dayLabels.forEach((lbl, i) => {
+    const dh = document.createElement('div');
+    dh.className = 'p-dh' + (i >= 5 ? ' we' : '');
+    dh.textContent = lbl;
+    grid.appendChild(dh);
+  });
+  // First day of month: which weekday? (Mo=0, So=6)
+  const firstDow = (new Date(y, m-1, 1).getDay() + 6) % 7;
+  for(let i = 0; i < firstDow; i++){
+    const e = document.createElement('div');
+    e.className = 'p-cell empty';
+    grid.appendChild(e);
+  }
+  const last = dim(y, m);
+  const today = todayLocal();
+  for(let d = 1; d <= last; d++){
+    const k = dk(y, m, d);
+    const w = dow(y, m, d);
+    const iw = w === 0 || w === 6;
+    const p = PRICES[k] || {};
+    const hasAny = (p.dz != null) || (p.suite != null);
+    const cell = document.createElement('div');
+    cell.className = 'p-cell' + (iw ? ' we' : '') + (hasAny ? ' has-price' : '') + (k === today ? ' today' : '');
+    let priceHtml;
+    if(hasAny){
+      priceHtml = '<div class="p-price">' +
+        '<span class="p-dz">' + (p.dz != null ? p.dz : '–') + '</span>' +
+        '<span class="p-sep"> / </span>' +
+        '<span class="p-su">' + (p.suite != null ? p.suite : '–') + '</span>' +
+        '</div>';
+    } else {
+      priceHtml = '<div class="p-price-empty">— CHF</div>';
+    }
+    cell.innerHTML = '<div class="p-day">' + d + '</div>' + priceHtml;
+    cell.onclick = () => openPriceEdit(k);
+    grid.appendChild(cell);
+  }
+}
+
+function openPriceEdit(dateKey){
+  editingDate = dateKey;
+  const [y,m,d] = dateKey.split('-');
+  const p = PRICES[dateKey] || {};
+  document.getElementById('pe-title').textContent = 'Preis bearbeiten';
+  document.getElementById('pe-date').textContent = d + '. ' + DMO[parseInt(m)] + ' ' + y;
+  document.getElementById('pe-dz').value = p.dz != null ? p.dz : '';
+  document.getElementById('pe-suite').value = p.suite != null ? p.suite : '';
+  document.getElementById('price-edit-ov').classList.add('open');
+  setTimeout(() => document.getElementById('pe-dz').focus(), 100);
+}
+function closePriceEdit(){ document.getElementById('price-edit-ov').classList.remove('open'); }
+async function savePriceEdit(){
+  const dzVal = document.getElementById('pe-dz').value;
+  const suVal = document.getElementById('pe-suite').value;
+  const dz = parseFloat(dzVal);
+  const su = parseFloat(suVal);
+  if((!dz || dz <= 0) && (!su || su <= 0)){
+    toast('⚠️ Bitte mind. einen gültigen Preis eingeben!', false); return;
+  }
+  const entry = {};
+  if(dz && dz > 0) entry.dz = dz;
+  if(su && su > 0) entry.suite = su;
+  try{
+    // set ile tamamen değiştir — boş bırakılan tip silinir, eski 'price' alanı da temizlenir
+    await db.collection('daily_prices').doc(editingDate).set(entry);
+    closePriceEdit();
+    toast('💾 Preis gespeichert!', true);
+  }catch(e){ toast('⚠️ Fehler: ' + e.message, false); }
+}
+async function deletePriceEdit(){
+  try{
+    await db.collection('daily_prices').doc(editingDate).delete();
+    closePriceEdit();
+    toast('🗑 Preis gelöscht', true);
+  }catch(e){ toast('⚠️ Fehler: ' + e.message, false); }
+}
+
+// Bereich (Toplu)
+function openBereich(){
+  const {y,m} = curPriceMonth;
+  const firstK = dk(y, m, 1);
+  const lastK = dk(y, m, dim(y, m));
+  document.getElementById('ber-from').value = firstK;
+  document.getElementById('ber-to').value = lastK;
+  document.getElementById('ber-dz').value = '';
+  document.getElementById('ber-suite').value = '';
+  updBerInfo();
+  document.getElementById('bereich-ov').style.display = 'flex';
+}
+function closeBereich(){ document.getElementById('bereich-ov').style.display = 'none'; }
+function updBerInfo(){
+  const f = document.getElementById('ber-from').value;
+  const t = document.getElementById('ber-to').value;
+  if(f && t && f <= t){
+    const n = Math.round((new Date(t) - new Date(f)) / 86400000) + 1;
+    document.getElementById('ber-info').textContent = n + ' Tag(e) ausgewählt';
+  } else {
+    document.getElementById('ber-info').textContent = '—';
+  }
+}
+async function applyBereich(){
+  const f = document.getElementById('ber-from').value;
+  const t = document.getElementById('ber-to').value;
+  const dz = parseFloat(document.getElementById('ber-dz').value);
+  const su = parseFloat(document.getElementById('ber-suite').value);
+  if(!f || !t || f > t){ toast('⚠️ Ungültiger Zeitraum!', false); return; }
+  if((!dz || dz <= 0) && (!su || su <= 0)){
+    toast('⚠️ Bitte mind. einen gültigen Preis eingeben!', false); return;
+  }
+  try{
+    const batch = db.batch();
+    let cur = f;
+    let cnt = 0;
+    while(cur <= t){
+      // Sadece girilen tipi güncelle, diğerini mevcut değeriyle koru (merge)
+      const existing = PRICES[cur] || {};
+      const entry = {};
+      entry.dz = (dz && dz > 0) ? dz : (existing.dz != null ? existing.dz : null);
+      entry.suite = (su && su > 0) ? su : (existing.suite != null ? existing.suite : null);
+      if(entry.dz == null) delete entry.dz;
+      if(entry.suite == null) delete entry.suite;
+      batch.set(db.collection('daily_prices').doc(cur), entry);
+      cnt++;
+      const d = new Date(cur); d.setDate(d.getDate() + 1);
+      cur = d.toISOString().slice(0,10);
+      if(cnt > 400){ break; } // safety
+    }
+    await batch.commit();
+    closeBereich();
+    const parts = [];
+    if(dz && dz > 0) parts.push('DZ ' + dz);
+    if(su && su > 0) parts.push('Suite ' + su);
+    toast('✅ ' + cnt + ' Tag(e): ' + parts.join(', ') + ' CHF', true);
+  }catch(e){ toast('⚠️ Fehler: ' + e.message, false); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const bf = document.getElementById('ber-from');
+  const bt = document.getElementById('ber-to');
+  if(bf) bf.addEventListener('change', updBerInfo);
+  if(bt) bt.addEventListener('change', updBerInfo);
+});
+// Eğer DOMContentLoaded zaten geçtiyse manuel bağla
+setTimeout(() => {
+  const bf = document.getElementById('ber-from');
+  const bt = document.getElementById('ber-to');
+  if(bf) bf.addEventListener('change', updBerInfo);
+  if(bt) bt.addEventListener('change', updBerInfo);
+}, 500);
+
+// Check-out listesi gönder
+function sendCheckoutList(){
+  const today = todayLocal();
+  const checkouts = RES.filter(r => r.checkout === today && r.status !== 'Storniert' && r.status !== 'Gesperrt');
+  
+  if(checkouts.length === 0){
+    toast('ℹ️ Heute keine Check-Outs',true);
+    return;
+  }
+
+  let liste = '';
+  checkouts.forEach(r => {
+    liste += `• Zimmer ${r.roomId} – ${r.guest} (${r.persons || 1} Pers.)\n`;
+  });
+
+  emailjs.send('service_1l9vt1l', 'template_6g0pshh', {
+    gast_email: 'hotelkernhof@gmail.com',
+    gast_name: 'Nani City Hotel Team',
+    zimmer: 'Übersicht',
+    anreise: today,
+    abreise: today,
+    naechte: String(checkouts.length) + ' Zimmer',
+    personen: String(checkouts.length),
+    schluessel: 'Check-Out Liste:\n' + liste,
+  }).then(()=>toast('📋 Check-Out Liste gesendet!',true))
+    .catch((err)=>toast('⚠️ Fehler: '+(err.text||JSON.stringify(err)),false));
+}
+
+
+</script>
+
+<!-- Preise (Tagespreise) Modal -->
+<div id="prices-ov">
+  <div id="prices-box">
+    <h2>💰 Tagespreise</h2>
+    <div class="psub">Preise pro Nacht · CHF</div>
+    <div class="p-nav">
+      <button class="p-nav-btn" onclick="pricesPrevMonth()">‹</button>
+      <div class="p-month" id="prices-month">—</div>
+      <button class="p-nav-btn" onclick="pricesNextMonth()">›</button>
+    </div>
+    <div class="p-grid" id="prices-grid"></div>
+    <div class="p-actions">
+      <button class="p-act-btn p-act-close" onclick="closePrices()">Schließen</button>
+      <button class="p-act-btn p-act-bereich" onclick="openBereich()">📅 Bereich anwenden</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tek gün fiyat düzenleme Modal -->
+<div id="price-edit-ov">
+  <div id="price-edit-box">
+    <h3 id="pe-title">Preis bearbeiten</h3>
+    <div class="pesub" id="pe-date">—</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label>🛏️ Doppelzimmer (CHF)</label>
+        <input type="number" id="pe-dz" min="0" step="1" placeholder="z.B. 120" onkeydown="if(event.key==='Enter')savePriceEdit()">
+      </div>
+      <div>
+        <label>👑 Suite (CHF)</label>
+        <input type="number" id="pe-suite" min="0" step="1" placeholder="z.B. 200" onkeydown="if(event.key==='Enter')savePriceEdit()">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:18px;">
+      <button class="p-act-btn p-act-close" style="flex:1;" onclick="closePriceEdit()">Abbrechen</button>
+      <button class="p-act-btn" style="flex:1;background:#FFF0EE;border:1.5px solid #FFCDD2;color:#C62828;" onclick="deletePriceEdit()">🗑 Löschen</button>
+      <button class="p-act-btn p-act-bereich" style="flex:2;" onclick="savePriceEdit()">✅ Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bereich (Toplu fiyat) Modal -->
+<div id="bereich-ov" style="display:none;position:fixed;inset:0;background:#1A2A3A66;z-index:270;align-items:center;justify-content:center;backdrop-filter:blur(3px);">
+  <div style="background:#fff;border-radius:16px;padding:24px;width:380px;max-width:92vw;box-shadow:0 12px 40px #0004;">
+    <h3 style="font-family:Playfair Display,serif;font-size:17px;color:#1B3A6B;margin-bottom:4px;">📅 Bereich anwenden</h3>
+    <div style="font-size:11px;color:#7A9ABB;margin-bottom:16px;">Preis auf einen Zeitraum anwenden</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:10px;color:#7A9ABB;font-weight:700;display:block;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;">Von</label>
+        <input type="date" id="ber-from" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F8FAFD;font-size:13px;font-family:DM Sans,sans-serif;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:10px;color:#7A9ABB;font-weight:700;display:block;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;">Bis</label>
+        <input type="date" id="ber-to" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F8FAFD;font-size:13px;font-family:DM Sans,sans-serif;outline:none;">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+      <div>
+        <label style="font-size:10px;color:#7A9ABB;font-weight:700;display:block;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;">🛏️ Doppelzimmer (CHF)</label>
+        <input type="number" id="ber-dz" min="0" step="1" placeholder="z.B. 120" style="width:100%;padding:11px 14px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F8FAFD;font-size:15px;font-weight:700;color:#1A2A3A;outline:none;font-family:DM Sans,sans-serif;">
+      </div>
+      <div>
+        <label style="font-size:10px;color:#7A9ABB;font-weight:700;display:block;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;">👑 Suite (CHF)</label>
+        <input type="number" id="ber-suite" min="0" step="1" placeholder="z.B. 200" style="width:100%;padding:11px 14px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F8FAFD;font-size:15px;font-weight:700;color:#1A2A3A;outline:none;font-family:DM Sans,sans-serif;">
+      </div>
+    </div>
+    <div style="font-size:11px;color:#7A9ABB;margin-bottom:14px;text-align:center;" id="ber-info">—</div>
+    <div style="display:flex;gap:8px;">
+      <button class="p-act-btn p-act-close" style="flex:1;" onclick="closeBereich()">Abbrechen</button>
+      <button class="p-act-btn p-act-bereich" style="flex:2;" onclick="applyBereich()">✅ Anwenden</button>
+    </div>
+  </div>
+</div>
+
+<!-- Überbuchung Kontrol Modal -->
+<div id="obcheck-ov" style="display:none;position:fixed;inset:0;background:#1A2A3A66;z-index:280;align-items:flex-start;justify-content:center;backdrop-filter:blur(3px);overflow-y:auto;padding:20px;">
+  <div style="background:#fff;border-radius:20px;padding:24px;width:560px;max-width:95vw;box-shadow:0 24px 60px #1A2A3A22;border:1px solid #D0DCF0;">
+    <h2 style="font-family:Playfair Display,serif;font-size:20px;color:#C62828;margin-bottom:4px;">⚠️ Überbuchungen</h2>
+    <div style="font-size:11px;color:#7A9ABB;letter-spacing:1px;text-transform:uppercase;margin-bottom:18px;">Doppelbelegungen im Kalender</div>
+    <div id="obcheck-list"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button onclick="closeObCheck()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid #D0DCF0;background:#F4F6F9;color:#4A6A8A;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Überbuchung Modal -->
+<div id="ub-ov" style="display:none;position:fixed;inset:0;background:#1A2A3A66;z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(3px);">
+  <div style="background:#fff;border-radius:20px;padding:28px;width:480px;max-width:95vw;box-shadow:0 24px 60px #1A2A3A22;border:1px solid #FFCDD2;">
+    <h2 style="font-family:Playfair Display,serif;font-size:18px;color:#C62828;margin-bottom:8px;">⚠️ Überbuchung!</h2>
+    <p style="font-size:12px;color:#7A9ABB;margin-bottom:20px;">Dieses Zimmer ist bereits belegt. Wählen Sie eine neue Lösung:</p>
+    
+    <div id="ub-info" style="background:#FFF8F0;border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px;line-height:1.8;border:1px solid #FFCDD2;"></div>
+    
+    <div style="display:grid;gap:10px;">
+      <div style="font-size:11px;color:#7A9ABB;font-weight:700;letter-spacing:1px;">OPTION 1: BESTEHENDEN GAST VERSCHIEBEN</div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <select id="ub-room" style="flex:1;padding:9px 12px;border-radius:8px;border:1.5px solid #D0DCF0;background:#F8FAFD;color:#1A2A3A;font-size:13px;outline:none;font-family:DM Sans,sans-serif;">
+          <option value="">-- Freies Zimmer wählen --</option>
+        </select>
+        <button onclick="doUberbuchung()" style="padding:10px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,#1B3A6B,#2D6FBF);color:#fff;font-size:13px;font-weight:700;cursor:pointer;">Verschieben</button>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid #E0E7F0;margin-top:18px;padding-top:14px;">
+      <div style="font-size:11px;color:#7A9ABB;font-weight:700;letter-spacing:1px;margin-bottom:8px;">OPTION 2: BEIDE BUCHUNGEN BEHALTEN</div>
+      <button onclick="doDoppelbuchungAnyway()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid #FFCDD2;background:#FFF0EE;color:#C62828;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">🔴 Trotzdem speichern (Doppelbuchung)</button>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button onclick="closeUb()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #D0DCF0;background:#F4F6F9;color:#4A6A8A;font-size:13px;cursor:pointer;font-family:DM Sans,sans-serif;">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
